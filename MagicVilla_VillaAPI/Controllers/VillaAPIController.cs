@@ -67,5 +67,27 @@ namespace MagicVilla_VillaAPI.Controllers
 
 			return CreatedAtRoute("GetVilla", new { id = villaDTO.Id }, villaDTO);
 		}
+
+		[HttpDelete("{id:int}", Name = "DeleteVilla")] //naming here is just adding?? 
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public IActionResult DeleteVilla(int id) //Iaction result instead of actionresult cuz there's no return type needed..
+		{
+			if (id == 0)
+			{
+				return BadRequest();
+			}
+			var villa = VillaStore.VillaList.FirstOrDefault(s => s.Id == id);
+			if (villa == null)
+			{
+				return NotFound();
+			}
+			VillaStore.VillaList.Remove(villa);
+			return NoContent();
+
+		}
+
+
 	}
 }
