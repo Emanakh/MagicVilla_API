@@ -45,6 +45,15 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		public ActionResult<VillaDTO> CreateVilla([FromBody] VillaDTO villaDTO)
 		{
+			//if (!ModelState.IsValid) { return BadRequest(ModelState); } //api controller will handle the validations by the data annotations -- the breakpoint will not even enter the model state validations 
+
+			//--- i can add custom validations by model state
+			if (VillaStore.VillaList.FirstOrDefault(s => s.Name == villaDTO.Name) != null)
+			{
+				ModelState.AddModelError("custom validation", "the name should be unique");
+				return BadRequest(ModelState);
+			}
+
 			if (villaDTO == null)
 			{
 				return BadRequest(villaDTO);
