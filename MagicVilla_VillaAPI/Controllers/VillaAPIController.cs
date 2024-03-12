@@ -3,6 +3,7 @@ using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.DTO;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MagicVilla_VillaAPI.Controllers
 {
@@ -13,9 +14,12 @@ namespace MagicVilla_VillaAPI.Controllers
 	public class VillaAPIController : ControllerBase
 	{
 		private readonly ILogger<VillaAPIController> _logger;
-		public VillaAPIController(ILogger<VillaAPIController> logger)
+		private readonly ApplicationDbContext _db;
+
+		public VillaAPIController(ILogger<VillaAPIController> logger, ApplicationDbContext db)
 		{
 			_logger = logger;
+			_db = db;
 		}
 
 		[HttpGet]
@@ -23,7 +27,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		public ActionResult<IEnumerable<VillaDTO>> GetVillas()
 		{
 			_logger.LogInformation("getting all villas");
-			return Ok(VillaStore.VillaList);
+			return Ok(_db.Villas.ToList());
 
 		}
 
@@ -38,7 +42,8 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest();
 			}
-			var villa = VillaStore.VillaList.FirstOrDefault(s => s.Id == id);
+			var villa = _db.Villas.FirstOrDefault(s => s.Id == id);
+			//var villa = _db.Villas.Find(id);
 			if (villa == null)
 			{
 				_logger.LogError($"can't find villa with id = {id}");
@@ -56,7 +61,7 @@ namespace MagicVilla_VillaAPI.Controllers
 			//if (!ModelState.IsValid) { return BadRequest(ModelState); } //api controller will handle the validations by the data annotations -- the breakpoint will not even enter the model state validations 
 
 			//--- i can add custom validations by model state
-			if (VillaStore.VillaList.FirstOrDefault(s => s.Name == villaDTO.Name) != null)
+			if (_db.Villas.FirstOrDefault(s => s.Name == villaDTO.Name) != null)
 			{
 				ModelState.AddModelError("custom validation", "the name should be unique");
 				return BadRequest(ModelState);
@@ -70,10 +75,21 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return StatusCode(StatusCodes.Status500InternalServerError); //internal server error because its the error from server not the user... 
 			}
-			villaDTO.Id = VillaStore.VillaList.OrderByDescending(s => s.Id).FirstOrDefault().Id + 1;
-			VillaStore.VillaList.Add(villaDTO);
-
-			return CreatedAtRoute("GetVilla", new { id = villaDTO.Id }, villaDTO);
+			Villa model = new()
+			{
+				Id = villaDTO.Id,
+				Name = villaDTO.Name,
+				Details = villaDTO.Details,
+				ImageUrl = villaDTO.ImageUrl,
+				Occupancy = villaDTO.Occupancy,
+				Rate = villaDTO.Rate,
+				Sqft = villaDTO.Sqft,
+				Amenity = villaDTO.Amenity,
+				CreatedDate = DateTime.Now
+			};
+			_db.Villas.Add(model);
+			_db.SaveChanges();
+			return CreatedAtRoute("GetVilla", new { id = villaDTO.Id }, villaDTO); //i need to add the new id here***
 		}
 
 		[HttpDelete("{id:int}", Name = "DeleteVilla")] //naming here is just adding?? 
@@ -86,15 +102,19 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest();
 			}
-			var villa = VillaStore.VillaList.FirstOrDefault(s => s.Id == id);
+			var villa = _db.Villas.FirstOrDefault(s => s.Id == id);
 			if (villa == null)
 			{
 				return NotFound();
 			}
-			VillaStore.VillaList.Remove(villa);
+			_db.Villas.Remove(villa);
+			_db.SaveChanges();
 			return NoContent();
 
 		}
+
+
+
 
 		[HttpPut("{id:int}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -106,19 +126,32 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest();
 			}
-			var villa = VillaStore.VillaList.FirstOrDefault(s => s.Id == id); //didn't check if villa is null???
+			var villa = _db.Villas.AsNoTracking().FirstOrDefault(s => s.Id == id);
+			//didn't check if villa is null? tracking problem --
 			if (villa == null) //added this by my own..
 			{
 				return NotFound();
 			}
-			villa.Name = villaDTO.Name;
-			villa.Sqft = villaDTO.Sqft;
-			villa.Occupancy = villaDTO.Occupancy;
 
+			//change the dto to villa
+			Villa model = new()
+			{
+				Id = villaDTO.Id, //i have to add the id to update this villa -- if the id is 0 or removed this prop i will add a new villa.. 
+				Name = villaDTO.Name,
+				Details = villaDTO.Details,
+				ImageUrl = villaDTO.ImageUrl,
+				Occupancy = villaDTO.Occupancy,
+				Rate = villaDTO.Rate,
+				Sqft = villaDTO.Sqft,
+				Amenity = villaDTO.Amenity,
+				UpdatedDate = DateTime.Now
+			};
+			//auto update the villa
+			_db.Villas.Update(model);
+			_db.SaveChanges();
 			return NoContent();
-
-
 		}
+
 
 		[HttpPatch("{id:int}")]
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -130,18 +163,47 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest();
 			}
-			var villa = VillaStore.VillaList.FirstOrDefault(s => s.Id == id); //didn't check if villa is null???
+			var villa = _db.Villas.AsNoTracking().FirstOrDefault(s => s.Id == id);
+			//			didn't check if villa is null???
 			if (villa == null) //added this by my own..
 			{
 				return NotFound();
 			}
-			patchVilla.ApplyTo(villa, ModelState); //add model state to log if there's errors.
+			//did update in the dto.. 
+			VillaDTO villaDTO = new()
+			{
+				Id = villa.Id,
+				Name = villa.Name,
+				Details = villa.Details,
+				ImageUrl = villa.ImageUrl,
+				Occupancy = villa.Occupancy,
+				Rate = villa.Rate,
+				Sqft = villa.Sqft,
+				Amenity = villa.Amenity
+			};
+			patchVilla.ApplyTo(villaDTO, ModelState); //add model state to log if there's errors.
+
 			if (!ModelState.IsValid)
 			{
 				return BadRequest(ModelState); //if there's errors 
 			}
-			return NoContent(); //if the operation done..
 
+			//convert dto to villa type
+			Villa model = new()
+			{
+				Id = villaDTO.Id,
+				Name = villaDTO.Name,
+				Details = villaDTO.Details,
+				ImageUrl = villaDTO.ImageUrl,
+				Occupancy = villaDTO.Occupancy,
+				Rate = villaDTO.Rate,
+				Sqft = villaDTO.Sqft,
+				Amenity = villaDTO.Amenity,
+				UpdatedDate = DateTime.Now
+			};
+			_db.Villas.Update(model);
+			_db.SaveChanges();
+			return NoContent(); //if the operation done..
 		}
 
 
