@@ -56,7 +56,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public ActionResult<VillaDTO> CreateVilla([FromBody] VillaDTO villaDTO)
+		public ActionResult<VillaDTO> CreateVilla([FromBody] VillaCreatedDTO villaDTO)
 		{
 			//if (!ModelState.IsValid) { return BadRequest(ModelState); } //api controller will handle the validations by the data annotations -- the breakpoint will not even enter the model state validations 
 
@@ -71,13 +71,9 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest(villaDTO);
 			}
-			if (villaDTO.Id > 0) //when creating the id should be zero 
-			{
-				return StatusCode(StatusCodes.Status500InternalServerError); //internal server error because its the error from server not the user... 
-			}
+
 			Villa model = new()
 			{
-				Id = villaDTO.Id,
 				Name = villaDTO.Name,
 				Details = villaDTO.Details,
 				ImageUrl = villaDTO.ImageUrl,
@@ -89,7 +85,7 @@ namespace MagicVilla_VillaAPI.Controllers
 			};
 			_db.Villas.Add(model);
 			_db.SaveChanges();
-			return CreatedAtRoute("GetVilla", new { id = villaDTO.Id }, villaDTO); //i need to add the new id here***
+			return CreatedAtRoute("GetVilla", new { id = model.Id }, model); //i need to add the new id here***
 		}
 
 		[HttpDelete("{id:int}", Name = "DeleteVilla")] //naming here is just adding?? 
@@ -121,7 +117,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public IActionResult UpdateVilla(int id, [FromBody] VillaDTO villaDTO)
+		public IActionResult UpdateVilla(int id, [FromBody] VillaUpdatedDTO villaDTO)
 		{
 			if (villaDTO == null || villaDTO.Id != id)
 			{
@@ -157,7 +153,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public IActionResult UpdatePartialVilla(int id, JsonPatchDocument<VillaDTO> patchVilla)
+		public IActionResult UpdatePartialVilla(int id, JsonPatchDocument<VillaUpdatedDTO> patchVilla)
 		{
 			if (patchVilla == null || id == 0)
 			{
@@ -169,7 +165,7 @@ namespace MagicVilla_VillaAPI.Controllers
 				return NotFound();
 			}
 			//did update in the dto.. 
-			VillaDTO villaDTO = new()
+			VillaUpdatedDTO villaDTO = new()
 			{
 				Id = villa.Id,
 				Name = villa.Name,
