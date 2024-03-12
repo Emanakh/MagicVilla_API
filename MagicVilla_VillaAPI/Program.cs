@@ -1,31 +1,24 @@
-using MagicVilla_VillaAPI.Logging;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-//serilog config
 Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File("log/villaLogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
-builder.Host.UseSerilog(); //to use serilog instead of the normal logger
-
-builder.Services.AddSingleton<Ilogging, Logging>(); //custom logging 
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers(option =>
 {
-	//comment it temprolory to test w swagger
-	//option.ReturnHttpNotAcceptable = true; //controllers will return a 406 Not Acceptable HTTP status code if the client's requested media type is not supported by the API, and it will only allow responses in the JSON format.
+	//option.ReturnHttpNotAcceptable = true; 
 }
-).AddNewtonsoftJson(); //add newtownsoft json to handle patch requests
+).AddNewtonsoftJson();
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy(name: "angular",
 					  policy =>
 					  {
 						  policy.AllowAnyHeader();
-						  //policy.AllowAnyOrigin();
-
-						  policy.WithOrigins("http://localhost:4200"); //angular origin 
+						  policy.WithOrigins("http://localhost:4200");
 						  policy.AllowAnyMethod();
 					  });
 });
