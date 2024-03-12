@@ -1,3 +1,4 @@
+using MagicVilla_VillaAPI.Logging;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File("log/villaLogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 builder.Host.UseSerilog(); //to use serilog instead of the normal logger
 
+builder.Services.AddSingleton<Ilogging, Logging>(); //custom logging 
 
 builder.Services.AddControllers(option =>
 {
