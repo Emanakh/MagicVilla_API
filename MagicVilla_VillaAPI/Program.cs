@@ -2,7 +2,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson(); //add newtownsoft json to handle patch requests
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy(name: "angular",

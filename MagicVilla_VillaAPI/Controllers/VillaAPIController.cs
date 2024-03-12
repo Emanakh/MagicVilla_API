@@ -1,6 +1,7 @@
 ﻿using MagicVilla_VillaAPI.Data;
 using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.DTO;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MagicVilla_VillaAPI.Controllers
@@ -111,6 +112,32 @@ namespace MagicVilla_VillaAPI.Controllers
 
 
 		}
+
+		[HttpPatch("{id:int}")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public IActionResult UpdatePartialVilla(int id, JsonPatchDocument<VillaDTO> patchVilla)
+		{
+			if (patchVilla == null || id == 0)
+			{
+				return BadRequest();
+			}
+			var villa = VillaStore.VillaList.FirstOrDefault(s => s.Id == id); //didn't check if villa is null???
+			if (villa == null) //added this by my own..
+			{
+				return NotFound();
+			}
+			patchVilla.ApplyTo(villa, ModelState); //add model state to log if there's errors.
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState); //if there's errors 
+			}
+			return NoContent(); //if the operation done..
+
+		}
+
+
 
 
 	}
