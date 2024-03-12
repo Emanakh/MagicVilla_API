@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy(name: "angularlocalhost",
+	options.AddPolicy(name: "angular",
 					  policy =>
 					  {
 						  policy.AllowAnyHeader();
@@ -29,7 +29,7 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
-app.UseCors("angularlocalhost");
+app.UseCors("angular");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
