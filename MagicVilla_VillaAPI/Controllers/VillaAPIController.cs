@@ -42,8 +42,8 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest();
 			}
-			var villa = _db.Villas.FirstOrDefault(s => s.Id == id);
-			//var villa = _db.Villas.Find(id);
+			//var villa = _db.Villas.FirstOrDefault(s => s.Id == id);
+			var villa = _db.Villas.Find(id);
 			if (villa == null)
 			{
 				_logger.LogError($"can't find villa with id = {id}");
@@ -102,7 +102,8 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				return BadRequest();
 			}
-			var villa = _db.Villas.FirstOrDefault(s => s.Id == id);
+			var villa = _db.Villas.Find(id);
+			//var villa = _db.Villas.FirstOrDefault(s => s.Id == id);
 			if (villa == null)
 			{
 				return NotFound();
@@ -127,7 +128,6 @@ namespace MagicVilla_VillaAPI.Controllers
 				return BadRequest();
 			}
 			var villa = _db.Villas.AsNoTracking().FirstOrDefault(s => s.Id == id);
-			//didn't check if villa is null? tracking problem --
 			if (villa == null) //added this by my own..
 			{
 				return NotFound();
@@ -164,8 +164,7 @@ namespace MagicVilla_VillaAPI.Controllers
 				return BadRequest();
 			}
 			var villa = _db.Villas.AsNoTracking().FirstOrDefault(s => s.Id == id);
-			//			didn't check if villa is null???
-			if (villa == null) //added this by my own..
+			if (villa == null)
 			{
 				return NotFound();
 			}
@@ -203,7 +202,7 @@ namespace MagicVilla_VillaAPI.Controllers
 			};
 			_db.Villas.Update(model);
 			_db.SaveChanges();
-			return NoContent(); //if the operation done..
+			return NoContent();
 		}
 
 
