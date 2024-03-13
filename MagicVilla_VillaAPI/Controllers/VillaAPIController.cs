@@ -18,25 +18,29 @@ namespace MagicVilla_VillaAPI.Controllers
 		private readonly ILogger<VillaAPIController> _logger;
 		private readonly IVillaRepository _dbVilla;
 		private readonly IMapper _mapper;
-
+		private APIResponse _apiResponse;
 
 		public VillaAPIController(ILogger<VillaAPIController> logger, IVillaRepository dbVilla, IMapper mapper)
 		{
 			_logger = logger;
 			_dbVilla = dbVilla;
 			_mapper = mapper;
+			_apiResponse = new APIResponse();
 		}
 
 
 
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<ActionResult<IEnumerable<VillaDTO>>> GetVillas()
+		public async Task<ActionResult<APIResponse>> GetVillas()
 		{
 			_logger.LogInformation("getting all villas");
 
 			IEnumerable<Villa> VillaList = await _dbVilla.GetAllAsync();
-			return Ok(_mapper.Map<List<VillaDTO>>(VillaList));
+			_apiResponse.Result = _mapper.Map<List<VillaDTO>>(VillaList);
+			_apiResponse.IsSuccess = true;
+			_apiResponse.StatusCode = System.Net.HttpStatusCode.OK;
+			return Ok(_apiResponse);
 
 		}
 
@@ -46,7 +50,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<VillaDTO>> GetVilla(int id)
+		public async Task<ActionResult<APIResponse>> GetVilla(int id)
 		{
 			if (id == 0)
 			{
@@ -59,14 +63,18 @@ namespace MagicVilla_VillaAPI.Controllers
 				_logger.LogError($"can't find villa with id = {id}");
 				return NotFound();
 			}
-			return Ok(_mapper.Map<VillaDTO>(villa));
+			_apiResponse.Result = _mapper.Map<VillaDTO>(villa);
+			_apiResponse.StatusCode = System.Net.HttpStatusCode.OK;
+			_apiResponse.IsSuccess = true;
+			return Ok(_apiResponse);
+
 		}
 
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-		public async Task<ActionResult<VillaDTO>> CreateVilla([FromBody] VillaCreatedDTO createDTO)
+		public async Task<ActionResult<APIResponse>> CreateVilla([FromBody] VillaCreatedDTO createDTO)
 		{
 			//if (!ModelState.IsValid) { return BadRequest(ModelState); } //api controller will handle the validations by the data annotations -- the breakpoint will not even enter the model state validations 
 
@@ -83,11 +91,15 @@ namespace MagicVilla_VillaAPI.Controllers
 				return BadRequest(createDTO);
 			}
 
-			Villa model = _mapper.Map<Villa>(createDTO);
-			model.CreatedDate = DateTime.Now;
+			Villa villa = _mapper.Map<Villa>(createDTO);
+			villa.CreatedDate = DateTime.Now;
+			await _dbVilla.CreateAsync(villa);
 
-			await _dbVilla.CreateAsync(model);
-			return CreatedAtRoute("GetVilla", new { id = model.Id }, model); //the new identity id from the db villa..
+			_apiResponse.Result = _mapper.Map<VillaDTO>(villa);
+			_apiResponse.StatusCode = System.Net.HttpStatusCode.Created;
+			_apiResponse.IsSuccess = true;
+
+			return CreatedAtRoute("GetVilla", new { id = villa.Id }, _apiResponse); //the new identity id from the db villa..
 		}
 
 
@@ -96,7 +108,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> DeleteVilla(int id) //Iaction result instead of actionresult cuz there's no return type needed..
+		public async Task<ActionResult<APIResponse>> DeleteVilla(int id) //Iaction result instead of actionresult cuz there's no return type needed..
 		{
 			if (id == 0)
 			{
@@ -109,7 +121,10 @@ namespace MagicVilla_VillaAPI.Controllers
 				return NotFound();
 			}
 			await _dbVilla.RemoveAsync(villa);
-			return NoContent();
+			_apiResponse.StatusCode = System.Net.HttpStatusCode.NoContent;
+			_apiResponse.IsSuccess = true;
+
+			return Ok(_apiResponse);
 
 		}
 
@@ -120,7 +135,7 @@ namespace MagicVilla_VillaAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> UpdateVilla(int id, [FromBody] VillaUpdatedDTO updateDTO)
+		public async Task<ActionResult<APIResponse>> UpdateVilla(int id, [FromBody] VillaUpdatedDTO updateDTO)
 		{
 			if (updateDTO == null || updateDTO.Id != id)
 			{
@@ -134,10 +149,14 @@ namespace MagicVilla_VillaAPI.Controllers
 			//i feel that i need to check the new name..
 
 			Villa model = _mapper.Map<Villa>(updateDTO);
-			model.CreatedDate = villa.CreatedDate;
-			model.UpdatedDate = DateTime.Now;
+			model.CreatedDate = DateTime.Now;
 			await _dbVilla.UpdateAsync(model);
-			return NoContent();
+
+			_apiResponse.StatusCode = System.Net.HttpStatusCode.NoContent;
+			_apiResponse.IsSuccess = true;
+
+			return Ok(_apiResponse);
+
 		}
 
 
@@ -168,10 +187,14 @@ namespace MagicVilla_VillaAPI.Controllers
 
 			//convert dto to villa type
 			Villa model = _mapper.Map<Villa>(villaDTO);
-			model.CreatedDate = villa.CreatedDate;
-			model.UpdatedDate = DateTime.Now;
+			model.CreatedDate = DateTime.Now;
 			await _dbVilla.UpdateAsync(model);
-			return NoContent();
+
+			_apiResponse.StatusCode = System.Net.HttpStatusCode.NoContent;
+			_apiResponse.IsSuccess = true;
+
+			return Ok(_apiResponse);
+
 		}
 
 
