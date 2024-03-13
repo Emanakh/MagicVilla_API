@@ -26,11 +26,11 @@ namespace MagicVilla_VillaAPI.Repository.Repository
 			IQueryable<Villa> query = _db.Villas;
 			if (tracked == false)
 			{
-				query.AsNoTracking();
+				query = query.AsNoTracking(); //there was ERROR here cuz i forgot the = :::(((((
 			}
 			if (filter != null)
 			{
-				query.Where(filter);
+				query = query.Where(filter);
 			}
 			return await query.FirstOrDefaultAsync();
 		}
@@ -40,7 +40,7 @@ namespace MagicVilla_VillaAPI.Repository.Repository
 			IQueryable<Villa> query = _db.Villas;
 			if (filter != null)
 			{
-				query.Where(filter);
+				query = query.Where(filter);
 			}
 			return await query.ToListAsync();
 		}
