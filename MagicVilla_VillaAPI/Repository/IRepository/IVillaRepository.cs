@@ -8,6 +8,7 @@ namespace MagicVilla_VillaAPI.Repository.IRepository
 		Task<List<Villa>> GetAllAsync(Expression<Func<Villa, bool>> filter = null); //passing linq expression
 		Task<Villa> GetAsync(Expression<Func<Villa, bool>> filter = null, bool tracked = true);
 		Task CreateAsync(Villa entity);
+		Task UpdateAsync(Villa entity);
 		Task RemoveAsync(Villa entity);
 		Task SaveAsync();
 	}
