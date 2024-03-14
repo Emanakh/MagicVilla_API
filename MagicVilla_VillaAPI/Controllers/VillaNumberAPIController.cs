@@ -3,6 +3,7 @@ using MagicVilla_VillaAPI.Data;
 using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.DTO;
 using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +18,14 @@ namespace MagicVilla_VillaAPI.Controllers
 	public class VillaNumberAPIController : ControllerBase
 	{
 		private readonly IVillaNumberRepository _dbVillaNumber;
+		private readonly IVillaRepository _dbvilla;
 		private readonly IMapper _mapper;
 		private APIResponse _apiResponse;
 
-		public VillaNumberAPIController(IVillaNumberRepository dbVillaNumber, IMapper mapper)
+		public VillaNumberAPIController(IVillaNumberRepository dbVillaNumber, IVillaRepository dbvilla, IMapper mapper)
 		{
 			_dbVillaNumber = dbVillaNumber;
+			_dbvilla = dbvilla;
 			_mapper = mapper;
 			_apiResponse = new APIResponse();
 		}
@@ -96,10 +99,15 @@ namespace MagicVilla_VillaAPI.Controllers
 			{
 				if (await _dbVillaNumber.GetAsync(n => n.VillaNo == createDTO.VillaNo) != null)
 				{
-					ModelState.AddModelError("custom validation", "the name should be unique");
+					ModelState.AddModelError("custom validation", "Villa Number already Existed");
 					return BadRequest(ModelState);
 				}
 
+				if (await _dbvilla.GetAsync(v => v.Id == createDTO.VillaID) == null)
+				{
+					ModelState.AddModelError("custom validation", "Villa ID don't Existed");
+					return BadRequest(ModelState);
+				}
 
 				if (createDTO == null)
 				{
@@ -175,6 +183,15 @@ namespace MagicVilla_VillaAPI.Controllers
 				{
 					return BadRequest();
 				}
+
+				if (await _dbvilla.GetAsync(v => v.Id == updateDTO.VillaID) == null)
+				{
+					ModelState.AddModelError("custom validation", "Villa ID don't Existed");
+					return BadRequest(ModelState);
+				}
+
+
+
 				var villaNumber = await _dbVillaNumber.GetAsync(v => v.VillaNo == id, tracked: false); //or false directly
 				if (villaNumber == null) //added this by my own..
 				{
