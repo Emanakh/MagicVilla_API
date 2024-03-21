@@ -10,7 +10,7 @@ namespace MagicVilla_Web.Services
 	{
 		private readonly IHttpClientFactory _httpClient;
 
-		//public APIResponse responseModel { get; set; }
+		public APIResponse responseModel { get; set; }
 
 		public BaseService(IHttpClientFactory httpClient)
 		{
