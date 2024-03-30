@@ -40,7 +40,7 @@ namespace MagicVilla_Web.Services
 			{
 				apiType = MagicVilla_Utility.SD.ApiType.GET,
 				Url = villaUrl + "/api/villaAPI"
-			});
+            });
 		}
 
 		public Task<T> GetAsync<T>(int id)
