@@ -62,6 +62,7 @@ namespace MagicVilla_Web.Services
 					ErrorMessages = new List<string> { Convert.ToString(e.Message) },
 					IsSuccess = false
 				};
+				//serialize and deserialize to return rtpe t
 				var res = JsonConvert.SerializeObject(dto);
 				var APIResponse = JsonConvert.DeserializeObject<T>(res);
 				return APIResponse;
