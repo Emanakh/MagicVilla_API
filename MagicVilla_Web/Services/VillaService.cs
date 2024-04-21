@@ -10,6 +10,8 @@ namespace MagicVilla_Web.Services
 		private readonly IHttpClientFactory _clientFactory;
 
 		private string villaUrl;
+
+		//base service constructor require IHttpClientFactory
 		public VillaService(IHttpClientFactory clientFactory, IConfiguration configuration) :base(clientFactory)
 		{
 			_clientFactory = clientFactory;
@@ -58,7 +60,7 @@ namespace MagicVilla_Web.Services
 			{
 				apiType = MagicVilla_Utility.SD.ApiType.PUT,
 				Data = dto,
-				Url = villaUrl + "/api/villaAPI"+dto.Id
+				Url = villaUrl + "/api/villaAPI/"+dto.Id
 			});
 		}
 	}
